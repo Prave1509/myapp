@@ -85,17 +85,32 @@ def insert_record(data):
 
 
 # ---------- Load ML Models (Cached) ----------
-@st.cache_resource
+
+@st.cache_data(show_spinner=False)
 def load_models():
+    """
+    Load the classification and regression models safely.
+    Works for local and Streamlit Cloud deployments.
+    """
+    # Get absolute path to the folder containing this script
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+    # Folder where your models are stored (adjust if needed)
     model_dir = os.path.join(BASE_DIR, "models")
 
-    clf_model = joblib.load(
-        os.path.join(model_dir, "best_classification_model.joblib")
-    )
+    # Model filenames
+    clf_file = os.path.join(model_dir, "best_classification_model.joblib")
+    reg_file = os.path.join(model_dir, "best_regression_model.joblib")
 
-    reg_model = joblib.load(
-        os.path.join(model_dir, "best_regression_model.joblib")
-    )
+    # Check if files exist
+    if not os.path.exists(clf_file):
+        raise FileNotFoundError(f"Classification model not found: {clf_file}")
+    if not os.path.exists(reg_file):
+        raise FileNotFoundError(f"Regression model not found: {reg_file}")
+
+    # Load models
+    clf_model = joblib.load(clf_file)
+    reg_model = joblib.load(reg_file)
 
     return clf_model, reg_model
 
@@ -231,4 +246,5 @@ def show_next_sem():
 
 # ---------- Run ----------
 if __name__ == "__main__":
+
     show_next_sem()
